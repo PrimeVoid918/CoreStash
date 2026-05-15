@@ -1,36 +1,35 @@
-// lib/src/features/inventory/data/inventory_providers.dart
-
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:prac1/src/core/database/app_database.dart' as db;
 import 'package:prac1/src/features/inventory/data/inventory_repository.dart'
     as repo;
+// Import the database provider from your batch file to reuse the single instance
+import 'package:prac1/src/features/batch/data/batch_providers.dart'
+    show appDatabaseProvider;
 
-// 1. The Database Singleton
-final appDatabaseProvider = riverpod.Provider((ref) => db.AppDatabase());
-
-// 2. The DAOs
+// 1. Inventory-Specific DAOs
 final inventoryDaoProvider = riverpod.Provider(
   (ref) => ref.watch(appDatabaseProvider).inventoryDao,
 );
 
-// Note: Use the exact name from your AppDatabase getters
 final inventoryBatchDaoProvider = riverpod.Provider(
   (ref) => ref.watch(appDatabaseProvider).inventoryBatchDao,
 );
 
-// 3. The Repository (Injecting BOTH DAOs)
+// 2. Inventory Repository (Injecting BOTH DAOs)
 final inventoryRepoProvider = riverpod.Provider((ref) {
   return repo.InventoryRepository(
     ref.watch(inventoryDaoProvider),
-    ref.watch(inventoryBatchDaoProvider), // Corrected name
+    ref.watch(inventoryBatchDaoProvider),
   );
 });
 
-// 4. The Data Stream
-final inventoryListProvider = riverpod.FutureProvider<List<db.InventoryData>>((
-  ref,
-) {
-  final repository = ref.watch(inventoryRepoProvider);
-  // Using a dummy batch ID for now to test the chain
-  return repository.fetchItemsForBatch(1);
-});
+// 3. Service Layer: Fetch Items For a Specific Batch
+// Using .family turns this into a dynamic method like: getItemsByBatchId(id)
+final inventoryListByBatchProvider =
+    riverpod.FutureProvider.family<List<db.InventoryData>, int>((
+      ref,
+      batchId,
+    ) async {
+      final repository = ref.watch(inventoryRepoProvider);
+      return await repository.fetchItemsForBatch(batchId);
+    });

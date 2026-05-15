@@ -14,8 +14,12 @@ class BatchRepository {
     await _batchDao.createBatch(name: name, description: description);
   }
 
-  // Future<List<db.InventoryBatchData?>> fetchBatchData(int batchId) async {
-  //   final list = await _batchDao.getBatchById(batchId)
-  //   return  [list];
-  // }
+  Future<List<db.InventoryBatchData?>> fetchBatchData(int batchId) async {
+    final list = await _batchDao.getBatchById(batchId);
+    return [list];
+  }
+
+  Future<List<db.InventoryBatchData>> fetchAllBatches() async {
+    return await _batchDao.getAllBatches();
+  }
 }

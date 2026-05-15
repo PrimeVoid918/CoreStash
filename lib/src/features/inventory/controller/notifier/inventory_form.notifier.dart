@@ -35,7 +35,7 @@ class InventoryFormNotifier
         batchId: batchId,
       );
 
-      ref.invalidate(providers.inventoryListProvider);
+      // ref.invalidate(providers.inventoryListProvider);
 
       state = ui_form_data.InventoryFormState();
       return true;

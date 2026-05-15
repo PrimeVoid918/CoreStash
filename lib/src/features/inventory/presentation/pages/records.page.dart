@@ -100,7 +100,7 @@ class RecordsPage extends ConsumerWidget {
   // }
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final inventoryAsync = ref.watch(inventoryListProvider);
+    // final inventoryAsync = ref.watch(inventoryListProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text("Inventory Records"), centerTitle: true),

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prac1/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
 
 class ScannerPage extends ConsumerStatefulWidget {
-  const ScannerPage({super.key});
+  final int batchId;
+
+  const ScannerPage({super.key, required this.batchId});
 
   @override
   ConsumerState<ScannerPage> createState() => _ScannerPageState();
@@ -47,6 +49,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
                 icon: Icon(_isCameraOpen ? Icons.close : Icons.camera_alt),
                 label: Text("${_isCameraOpen ? "Close" : "Open"} Scanner"),
               ),
+              Text("whats up baby? the batch id is ${widget.batchId}"),
             ],
           ),
         ),
