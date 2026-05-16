@@ -19,6 +19,11 @@ class BatchRepository {
     return [list];
   }
 
+  Future<db.InventoryBatchData?> fetchBatchInfo(int batchId) async {
+    final info = await _batchDao.getBatchInfoById(batchId);
+    return info;
+  }
+
   Future<List<db.InventoryBatchData>> fetchAllBatches() async {
     return await _batchDao.getAllBatches();
   }

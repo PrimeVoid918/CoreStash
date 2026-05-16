@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:prac1/src/core/database/data_access_objects/inventory.dao.dart';
 import 'package:prac1/src/core/database/data_access_objects/batch.dao.dart';
 import 'package:prac1/src/core/database/app_database.dart' as db;
@@ -26,5 +27,32 @@ class InventoryRepository {
 
   Future<db.InventoryData?> fetchInventoryItem({required String qrCode}) {
     return _inventoryDao.getItemByQr(qrCode);
+  }
+
+  Future<String> generateCsvString(int batchId) async {
+    // 1. Fetch the joined records from the database
+    final List<TypedResult> rows = await _inventoryDao.getCsvExportData(
+      batchId,
+    );
+
+    // 2. Initialize the CSV buffer with the column headers requested by the head
+    final StringBuffer csvBuffer = StringBuffer();
+    csvBuffer.writeln('QR Code,Description,Date Scanned');
+
+    // 3. Loop through results and map table fields safely
+    for (final row in rows) {
+      final item = row.readTable(_inventoryDao.inventory);
+      final batch = row.readTable(_inventoryDao.inventoryBatch);
+
+      // Escape any unexpected commas inside descriptions to keep CSV formatting intact
+      final cleanDescription = batch.description.replaceAll('"', '""');
+
+      // Write row strings down line by line
+      csvBuffer.writeln(
+        '"${item.qrCode}","$cleanDescription","${item.scannedAt}"',
+      );
+    }
+
+    return csvBuffer.toString();
   }
 }

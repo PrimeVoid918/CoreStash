@@ -47,4 +47,11 @@ class InventoryDao extends DatabaseAccessor<AppDatabase>
   Future<int> deleteItem(int id) {
     return (delete(inventory)..where((t) => t.id.equals(id))).go();
   }
+
+  // ---- Export CSV ----
+  Future<List<TypedResult>> getCsvExportData(int batchId) {
+    return (select(inventory)..where((t) => t.batchId.equals(batchId))).join([
+      innerJoin(inventoryBatch, inventoryBatch.id.equalsExp(inventory.batchId)),
+    ]).get();
+  }
 }

@@ -23,3 +23,12 @@ final batchListProvider = riverpod.FutureProvider<List<db.InventoryBatchData>>((
   final repository = ref.watch(batchRepoProvider);
   return await repository.fetchAllBatches();
 });
+
+final batchInfoProvider =
+    riverpod.FutureProvider.family<db.InventoryBatchData?, int>((
+      ref,
+      batchId,
+    ) async {
+      final repository = ref.watch(batchRepoProvider);
+      return await repository.fetchBatchInfo(batchId);
+    });

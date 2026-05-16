@@ -3,8 +3,7 @@ import 'package:prac1/src/core/database/app_database.dart' as db;
 import 'package:prac1/src/features/inventory/data/inventory_repository.dart'
     as repo;
 // Import the database provider from your batch file to reuse the single instance
-import 'package:prac1/src/features/batch/data/batch_providers.dart'
-    show appDatabaseProvider;
+import 'package:prac1/src/features/batch/data/batch_providers.dart';
 
 // 1. Inventory-Specific DAOs
 final inventoryDaoProvider = riverpod.Provider(
@@ -30,3 +29,8 @@ final inventoryListByBatchProvider =
       final repository = ref.watch(inventoryRepoProvider);
       return repository.fetchItemsForBatch(batchId);
     });
+
+final exportCsvProvider = riverpod.Provider((ref) {
+  final repo = ref.watch(inventoryRepoProvider);
+  return (int batchId) => repo.generateCsvString(batchId);
+});

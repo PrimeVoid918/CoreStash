@@ -27,6 +27,12 @@ class InventoryBatchDao extends DatabaseAccessor<AppDatabase>
     )..where((b) => b.id.equals(id))).getSingleOrNull();
   }
 
+  Future<InventoryBatchData?> getBatchInfoById(int id) {
+    return (select(
+      inventoryBatch,
+    )..where((b) => b.id.equals(id))).getSingleOrNull();
+  }
+
   /// Get the full list of batches
   Future<List<InventoryBatchData>> getAllBatches() {
     return select(inventoryBatch).get();
