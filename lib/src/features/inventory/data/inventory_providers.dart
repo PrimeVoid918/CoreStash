@@ -26,10 +26,7 @@ final inventoryRepoProvider = riverpod.Provider((ref) {
 // 3. Service Layer: Fetch Items For a Specific Batch
 // Using .family turns this into a dynamic method like: getItemsByBatchId(id)
 final inventoryListByBatchProvider =
-    riverpod.FutureProvider.family<List<db.InventoryData>, int>((
-      ref,
-      batchId,
-    ) async {
+    riverpod.StreamProvider.family<List<db.InventoryData>, int>((ref, batchId) {
       final repository = ref.watch(inventoryRepoProvider);
-      return await repository.fetchItemsForBatch(batchId);
+      return repository.fetchItemsForBatch(batchId);
     });

@@ -17,8 +17,11 @@ class InventoryRepository {
     await _inventoryDao.insertItem(batchId: batchId, qrCode: qrCode);
   }
 
-  Future<List<db.InventoryData>> fetchItemsForBatch(int batchId) {
-    return _inventoryDao.getItemsByBatch(batchId);
+  // Future<List<db.InventoryData>> fetchItemsForBatch(int batchId) {
+  //   return _inventoryDao.getItemsByBatch(batchId);
+  // }
+  Stream<List<db.InventoryData>> fetchItemsForBatch(int batchId) {
+    return _inventoryDao.watchItemsByBatch(batchId);
   }
 
   Future<db.InventoryData?> fetchInventoryItem({required String qrCode}) {

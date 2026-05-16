@@ -21,8 +21,11 @@ class InventoryDao extends DatabaseAccessor<AppDatabase>
   }
 
   // --- READ ---
-  Future<List<InventoryData>> getItemsByBatch(int batchId) {
-    return (select(inventory)..where((t) => t.batchId.equals(batchId))).get();
+  // Future<List<InventoryData>> getItemsByBatch(int batchId) {
+  //   return (select(inventory)..where((t) => t.batchId.equals(batchId))).get();
+  // } // depracted as it caches it, instead returns a Stream where drift does the refetch
+  Stream<List<InventoryData>> watchItemsByBatch(int batchId) {
+    return (select(inventory)..where((t) => t.batchId.equals(batchId))).watch();
   }
 
   /// Get a single record by QR.

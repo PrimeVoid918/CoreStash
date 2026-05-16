@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prac1/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
+import 'package:prac1/src/features/inventory/controller/notifier/inventory_form.notifier.dart'
+    as inventory_notifier;
 
 class ScannerPage extends ConsumerStatefulWidget {
   final int batchId;
@@ -12,25 +14,36 @@ class ScannerPage extends ConsumerStatefulWidget {
 }
 
 class _ScannerPageState extends ConsumerState<ScannerPage> {
-  bool _isCameraOpen = false;
-
   @override
   void dispose() {
     super.dispose();
   }
 
-  void _updateResult(String code) {
-    // Update the Notifier instead of local setState
-    // ref.read(inventoryFormControllerProvider.notifier).setQr(code);
+  void _handleSubmitScannerItem() async {
+    final success = await ref
+        .read(inventory_notifier.inventoryFormControllerProvider.notifier)
+        .submitForm(batchId: widget.batchId);
 
-    setState(() {
-      _isCameraOpen = false;
-    });
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Item Saved")));
+    }
+  }
+
+  void _qrCodeValue(String qr) {
+    ref
+        .read(inventory_notifier.inventoryFormControllerProvider.notifier)
+        .setQr(qr);
   }
 
   @override
   Widget build(BuildContext context) {
-    // final formState = ref.watch
+    final formState = ref.watch(
+      inventory_notifier.inventoryFormControllerProvider,
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -39,17 +52,22 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_isCameraOpen)
-                SizedBox(
-                  height: 300,
-                  child: QRScannerWidget(onScan: _updateResult),
-                ),
-              ElevatedButton.icon(
-                onPressed: () => setState(() => _isCameraOpen = !_isCameraOpen),
-                icon: Icon(_isCameraOpen ? Icons.close : Icons.camera_alt),
-                label: Text("${_isCameraOpen ? "Close" : "Open"} Scanner"),
+              Text("qr code: ${formState.qrCode}"),
+              SizedBox(
+                height: 300,
+                child: QRScannerWidget(onScan: _qrCodeValue),
               ),
-              Text("whats up baby? the batch id is ${widget.batchId}"),
+              ElevatedButton(
+                onPressed: (formState.qrCode == "Nothing scanned yet")
+                    ? null
+                    : _handleSubmitScannerItem,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("LOG TO CONSOLE"),
+              ),
             ],
           ),
         ),

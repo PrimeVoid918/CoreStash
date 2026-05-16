@@ -66,8 +66,9 @@ class _BatchListPageState extends ConsumerState<BatchListPage> {
 
                   ElevatedButton(
                     onPressed: () => {
-                      inventory_route.InventoryScanScreen(id: widget.batchId).push(context),
-                      print("uh yawa? here theval for id ${widget.batchId}"),
+                      inventory_route.InventoryScanScreen(
+                        id: widget.batchId,
+                      ).push(context),
                     },
                     child: const Text("Start Scanning"),
                   ),
