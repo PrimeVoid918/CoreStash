@@ -13,9 +13,11 @@ class InventoryBatch extends Table {
 class Inventory extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get batchId => integer().references(InventoryBatch, #id)();
+  // IntColumn get batchId => integer().references(InventoryBatch, #id)();
+  IntColumn get batchId =>
+      integer().references(InventoryBatch, #id, onDelete: KeyAction.cascade)();
 
-  TextColumn get qrCode => text()();
+  TextColumn get qrCode => text().unique()();
 
   TextColumn get scannedAt => text()();
 }

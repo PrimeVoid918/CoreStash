@@ -55,4 +55,24 @@ class InventoryRepository {
 
     return csvBuffer.toString();
   }
+
+  Future<bool> checkDuplicate({
+    required String qrCode,
+    required int batchId,
+  }) async {
+    // 1. Call the low-level DAO query
+    final db.InventoryData? existingItem = await _inventoryDao.getItemInBatch(
+      batchId: batchId,
+      qrCode: qrCode,
+    );
+
+    // 2. Map the object to a clean boolean state
+    // If existingItem is NOT null, it means it already exists in this batch!
+    return existingItem != null;
+  }
+
+  Future<bool> deleteInventoryItem(int inventoryId) async {
+    final rowsAffected = await _inventoryDao.deleteInventoryItem(inventoryId);
+    return rowsAffected > 0;
+  }
 }

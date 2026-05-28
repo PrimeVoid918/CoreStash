@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prac1/src/features/inventory/controller/notifier/inventory_form.notifier.dart'
-    as notifier;
+    as inventory_notifier;
 import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
-  as route;
+    as route;
 import 'package:prac1/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverod;
 
@@ -17,23 +17,18 @@ class InventoryMainScreen extends riverod.ConsumerStatefulWidget {
 
 class _InventoryMainScreenState
     extends riverod.ConsumerState<InventoryMainScreen> {
-  // String _scanResult = "Nothing scanned yet";
   bool _isCameraOpen = false;
 
   final TextEditingController _descriptionController = TextEditingController();
 
   void _handleSubmit() async {
-    // Tell the notifier to save
-    // final success = await ref
-    //     .read(notifier.inventoryFormControllerProvider.notifier)
-    //     .submitForm(_descriptionController.text);
-    final sucess = await ref
-        .read(notifier.inventoryFormControllerProvider.notifier)
+    final result = await ref
+        .read(inventory_notifier.inventoryFormControllerProvider.notifier)
         .submitForm(batchId: 1);
 
     if (!mounted) return;
 
-    if (sucess) {
+    if (result == inventory_notifier.ScanResult.success) {
       _descriptionController.clear();
       ScaffoldMessenger.of(
         context,
@@ -42,8 +37,9 @@ class _InventoryMainScreenState
   }
 
   void _updateResult(String code) {
-    // Update the Notifier instead of local setState
-    ref.read(notifier.inventoryFormControllerProvider.notifier).setQr(code);
+    ref
+        .read(inventory_notifier.inventoryFormControllerProvider.notifier)
+        .setQr(code);
 
     setState(() {
       _isCameraOpen = false;
@@ -58,7 +54,9 @@ class _InventoryMainScreenState
 
   @override
   Widget build(BuildContext context) {
-    final formState = ref.watch(notifier.inventoryFormControllerProvider);
+    final formState = ref.watch(
+      inventory_notifier.inventoryFormControllerProvider,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text("Inventory")),
@@ -80,17 +78,6 @@ class _InventoryMainScreenState
 
               const SizedBox(height: 20),
 
-              // if (_isCameraOpen)
-              //   SizedBox(
-              //     height: 300,
-              //     child: QRScannerWidget(onScan: _updateResult),
-              //   ),
-
-              // ElevatedButton.icon(
-              //   onPressed: () => setState(() => _isCameraOpen = !_isCameraOpen),
-              //   icon: Icon(_isCameraOpen ? Icons.close : Icons.camera_alt),
-              //   label: Text("${_isCameraOpen ? "Close" : "Open"} Scanner"),
-              // ),
               const SizedBox(height: 20),
 
               TextField(

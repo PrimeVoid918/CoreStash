@@ -35,6 +35,15 @@ class InventoryDao extends DatabaseAccessor<AppDatabase>
     )..where((t) => t.qrCode.equals(qr))).getSingleOrNull();
   }
 
+  Future<InventoryData?> getItemInBatch({
+    required int batchId,
+    required String qrCode,
+  }) {
+    return (select(inventory)
+          ..where((t) => t.batchId.equals(batchId) & t.qrCode.equals(qrCode)))
+        .getSingleOrNull();
+  }
+
   // --- JOIN (The reason why we have both tables here) ---
   Future<List<TypedResult>> getItemsWithBatchInfo() {
     return select(inventory).join([
@@ -44,7 +53,7 @@ class InventoryDao extends DatabaseAccessor<AppDatabase>
 
   // --- DELETE ---
 
-  Future<int> deleteItem(int id) {
+  Future<int> deleteInventoryItem(int id) {
     return (delete(inventory)..where((t) => t.id.equals(id))).go();
   }
 

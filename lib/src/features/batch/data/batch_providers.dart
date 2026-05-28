@@ -11,9 +11,16 @@ final batchDaoProvider = riverpod.Provider(
   (ref) => ref.watch(appDatabaseProvider).inventoryBatchDao,
 );
 
+final inventoryDaoProvider = riverpod.Provider(
+  (ref) => ref.watch(appDatabaseProvider).inventoryDao,
+);
+
 // 3. Batch Repository (Only gets its own DAO)
 final batchRepoProvider = riverpod.Provider((ref) {
-  return batch_repo.BatchRepository(ref.watch(batchDaoProvider));
+  return batch_repo.BatchRepository(
+    ref.watch(batchDaoProvider),
+    ref.watch(inventoryDaoProvider),
+  );
 });
 
 // 4. Service Layer: Fetch All Batches (For your main screen)
