@@ -10,12 +10,16 @@ class InventoryDao extends DatabaseAccessor<AppDatabase>
   InventoryDao(super.db);
 
   // --- CREATE ---
-  Future<int> insertItem({required int batchId, required String qrCode}) {
+  Future<int> insertItem({
+    required int batchId,
+    required String qrCode,
+    DateTime? scannedAt,
+  }) {
     return into(inventory).insert(
       InventoryCompanion.insert(
         batchId: batchId,
         qrCode: qrCode,
-        scannedAt: DateTime.now().toIso8601String(),
+        scannedAt: scannedAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       ),
     );
   }

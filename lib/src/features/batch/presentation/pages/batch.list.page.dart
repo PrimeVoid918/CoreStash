@@ -10,29 +10,34 @@ import 'package:prac1/src/features/inventory/data/inventory_providers.dart'
     as inventory_provider;
 import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
     as inventory_route;
+import 'package:prac1/src/core/services/csv_service.provider.dart' as csv_service;
 
 final executeCsvExportActionProvider = Provider((ref) {
   final batchRepo = ref.watch(batch_provider.batchRepoProvider);
+  final csvService = ref.watch(
+    csv_service.csvServiceProvider,
+  ); // 👈 Injected statelessly from core
 
   return (int batchId) async {
+    // 1. Pull the data configurations safely from the features database layer
     final batchData = await batchRepo.fetchBatchInfo(batchId);
+    final String exportName = batchData?.name ?? "$batchId";
 
-    final String safeName = (batchData?.name ?? "$batchId")
-        .replaceAll(RegExp(r'[^\w\s]+'), '')
-        .replaceAll(' ', '_');
-
-    final csvContent = await batchRepo.generateCsvString(batchId);
-
-    final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/$safeName.csv');
-    await tempFile.writeAsString(csvContent);
-
-    final params = SaveFileDialogParams(sourceFilePath: tempFile.path);
-    final String? finalResultPath = await FlutterFileDialog.saveFile(
-      params: params,
+    // 2. Pull down the raw matrix rows arrays
+    final List<List<dynamic>> csvRows = await batchRepo.generateCsvRows(
+      batchId,
     );
 
-    return finalResultPath != null;
+    // 3. Delegate the temporary filesystem construction to our Core tool
+    final File? tempFile = await csvService.createTempCsvFile(
+      fileName: exportName,
+      rows: csvRows,
+    );
+
+    if (tempFile == null) return false;
+
+    // 4. Fire the native OS download dialogue prompt frame
+    return await csvService.presentSaveDialog(tempFile);
   };
 });
 

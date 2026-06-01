@@ -6,6 +6,8 @@ import 'package:prac1/src/features/batch/controller/notifier/batch_form.notifier
 import 'package:prac1/src/features/batch/data/batch_providers.dart' as provider;
 import 'package:prac1/src/features/batch/presentation/batch.route.dart'
     as batch_router;
+import 'package:prac1/src/core/services/csv_service.provider.dart'
+    as csv_service;
 
 class BatchMainPage extends ConsumerWidget {
   const BatchMainPage({super.key});
@@ -16,6 +18,7 @@ class BatchMainPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text(
           "Inventory Batches",
@@ -43,17 +46,110 @@ class BatchMainPage extends ConsumerWidget {
           ),
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
+        heroTag: "btn_batch_actions",
         backgroundColor: Colors.blue.shade600,
         foregroundColor: Colors.white,
-        elevation: 2,
-        onPressed: () => _showCreateBatchModal(context),
-        child: const Icon(Icons.add),
+        elevation: 4,
+        onPressed: () => _showActionMenuBottomSheet(context, ref),
+        child: const Icon(Icons.add, size: 28),
       ),
     );
   }
 
-  void _showCreateBatchModal(BuildContext context) {
+  void _showActionMenuBottomSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 20.0,
+              horizontal: 16.0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 8.0,
+                  ),
+                  child: Text(
+                    "Batch Actions",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.create_new_folder_outlined,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                  title: const Text(
+                    "Create New Empty Batch",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text(
+                    "Manually set up a brand new warehouse stream session",
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _showCreateBatchModal(context, ref);
+                  },
+                ),
+                const Divider(height: 16, thickness: 0.5),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.file_open_outlined,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                  title: const Text(
+                    "Import Batch List (.csv)",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text(
+                    "Parse internal storage table files straight into database tables",
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _handleCsvImportAction(context, ref);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCreateBatchModal(BuildContext context, WidgetRef ref) {
+    ref.invalidate(notifier.batchFormControllerProvider);
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -69,6 +165,50 @@ class BatchMainPage extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Future<void> _handleCsvImportAction(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    //! context problem
+    // capture the messenger instance immediately while context is 100% active
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final csvService = ref.read(csv_service.csvServiceProvider);
+      final List<List<dynamic>>? parsedMatrix = await csvService
+          .pickAndParseCsv();
+
+      if (parsedMatrix == null || parsedMatrix.isEmpty) return;
+
+      final batchRepo = ref.read(provider.batchRepoProvider);
+      await batchRepo.importBatchFromRows(parsedMatrix);
+
+      ref.invalidate(provider.batchListProvider);
+
+      // use the captured messenger state instead of raw context
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Safely imported "${parsedMatrix.length - 1}" items!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('IMPORT_CRASH: $e\n$stackTrace');
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error occurred: Duplicate QR Code or invalid layout data found.',
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }
 

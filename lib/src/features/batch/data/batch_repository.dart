@@ -23,17 +23,14 @@ class BatchRepository {
     required String name,
     required String description,
   }) async {
-    // 1. Grab the existing row state first
     final existingBatch = await _batchDao.getBatchInfoById(batchId);
     if (existingBatch == null) return false;
 
-    // 2. Safely mutate only the fields you want to change using .copyWith
     final updatedEntry = existingBatch.copyWith(
       name: name,
       description: description,
     );
 
-    // 3. Pass the full completed entry back into your current replace DAO function
     return await _batchDao.updateBatch(updatedEntry);
   }
 
@@ -52,32 +49,69 @@ class BatchRepository {
     return info;
   }
 
-  Future<String> generateCsvString(int batchId) async {
-    // 1. Fetch the joined rows from your local batch DAO query
+  Future<List<List<dynamic>>> generateCsvRows(int batchId) async {
     final List<TypedResult> rows = await _batchDao.getCsvExportData(batchId);
 
-    // 2. Initialize the CSV buffer with your column headers
-    final StringBuffer csvBuffer = StringBuffer();
-    csvBuffer.writeln('QR Code, Batch Name,Description,Date Scanned');
+    final List<List<dynamic>> csvMatrix = [
+      ['QR Code', 'Batch Name', 'Description', 'Date Scanned'],
+    ];
 
-    // 3. Loop through the records
     for (final row in rows) {
-      // Use _batchDao to read the raw database column tables safely
       final item = row.readTable(_batchDao.inventory);
       final batch = row.readTable(_batchDao.inventoryBatch);
 
-      // Clean up string values to prevent broken CSV syntax
-      final cleanBatchName = batch.name.replaceAll('"', '""');
-      final cleanDescription = batch.description.replaceAll('"', '""');
-      final cleanQrCode = item.qrCode.replaceAll('"', '""');
-
-      // 4. Write row lines down with the batch name as the first column!
-      csvBuffer.writeln(
-        '"$cleanQrCode","$cleanBatchName","$cleanDescription","${item.scannedAt}"',
-      );
+      csvMatrix.add([
+        item.qrCode,
+        batch.name,
+        batch.description,
+        item.scannedAt,
+      ]);
     }
 
-    return csvBuffer.toString();
+    return csvMatrix;
+  }
+
+  Future<void> importBatchFromRows(List<List<dynamic>> rows) async {
+    if (rows.length < 2) return;
+
+    final String batchName = rows[1].length > 1
+        ? rows[1][1]?.toString().trim() ?? "Imported Batch"
+        : "Imported Batch";
+
+    final String batchDescription = rows[1].length > 2
+        ? rows[1][2]?.toString().trim() ?? ""
+        : "";
+
+    // Ensure the top-level transaction wrapper is awaited
+    await _batchDao.db.transaction(() async {
+      final int newBatchId = await _batchDao.createBatch(
+        name: batchName.isNotEmpty ? batchName : "Imported Batch",
+        description: batchDescription,
+      );
+
+      for (int i = 1; i < rows.length; i++) {
+        final row = rows[i];
+        if (row.isEmpty || row[0] == null) continue;
+
+        final String qrCode = row[0].toString().trim();
+        if (qrCode.isEmpty) continue;
+
+        // init a real DateTime object default value
+        DateTime parsedScannedAt = DateTime.now();
+
+        // check and parse the raw string from row[3] safely
+        if (row.length > 3 && row[3] != null && row[3].toString().isNotEmpty) {
+          parsedScannedAt =
+              DateTime.tryParse(row[3].toString()) ?? DateTime.now();
+        }
+
+        await _inventoryDao.insertItem(
+          batchId: newBatchId,
+          qrCode: qrCode,
+          scannedAt: parsedScannedAt,
+        );
+      }
+    });
   }
 
   Future<List<db.InventoryBatchData>> fetchAllBatches() async {
