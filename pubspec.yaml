@@ -36,7 +36,6 @@ dependencies:
   # sqflite: ^2.4.2+1
   path_provider: ^2.1.5
   csv: ^8.0.0
-  share_plus: ^13.1.0
   drift: ^2.28.1
 
   # The following adds the Cupertino Icons font to your application.
@@ -44,6 +43,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   path: ^1.9.1
   flutter_file_dialog: ^3.0.3
+  # share_plus: ^13.1.0
+  # file_picker: ^8.3.3
+  share_plus: ^10.1.3
+  file_picker: ^8.3.3
+  universal_html: ^2.3.0
 
 dev_dependencies:
   drift_dev: ^2.28.1
@@ -51,6 +55,9 @@ dev_dependencies:
   go_router_builder: ^4.3.0
   flutter_test:
     sdk: flutter
+
+# dependency_overrides:
+#   win32: ^6.0.1  # 👈 Forces both packages to drop their weapons and use this version
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

@@ -1,9 +1,9 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
+
+// engine selector:
+import 'connection/connection_stub.dart'
+    if (dart.library.ffi) 'connection/connection_mobile.dart'
+    if (dart.library.js_interop) 'connection/connection_web.dart';
 
 import 'tables.dart';
 import 'data_access_objects/batch.dao.dart';
@@ -16,7 +16,7 @@ part 'app_database.g.dart';
   daos: [InventoryDao, InventoryBatchDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase() : super(openConnection());
 
   @override
   int get schemaVersion => 1;
@@ -27,14 +27,4 @@ class AppDatabase extends _$AppDatabase {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dir = await getApplicationDocumentsDirectory();
-
-    final file = File(path.join(dir.path, 'inventory.sqlite'));
-
-    return NativeDatabase(file);
-  });
 }

@@ -129,16 +129,15 @@ class BatchMainPage extends ConsumerWidget {
                     ),
                   ),
                   title: const Text(
-                    "Import Batch List (.csv)",
+                    "Import Batch List(.csv)",
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                   subtitle: const Text(
                     "Parse internal storage table files straight into database tables",
                   ),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _handleCsvImportAction(context, ref);
-                  },
+
+                  // 🧠 Force strict, immediate execution on tap to lock Chrome's window gesture anchor
+                  onTap: () => _handleCsvImportAction(context, ref),
                 ),
               ],
             ),
@@ -171,23 +170,26 @@ class BatchMainPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    //! context problem
-    // capture the messenger instance immediately while context is 100% active
     final messenger = ScaffoldMessenger.of(context);
-
     try {
       final csvService = ref.read(csv_service.csvServiceProvider);
       final List<List<dynamic>>? parsedMatrix = await csvService
           .pickAndParseCsv();
 
-      if (parsedMatrix == null || parsedMatrix.isEmpty) return;
+      if (parsedMatrix == null || parsedMatrix.isEmpty) {
+        // If they backed out or cancelled, we don't drop the sheet out from under them
+        return;
+      }
+
+      // 🧠 Valid file grabbed! Now safely close the bottom action menu sheet
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
 
       final batchRepo = ref.read(provider.batchRepoProvider);
       await batchRepo.importBatchFromRows(parsedMatrix);
-
       ref.invalidate(provider.batchListProvider);
 
-      // use the captured messenger state instead of raw context
       messenger.showSnackBar(
         SnackBar(
           content: Text('Safely imported "${parsedMatrix.length - 1}" items!'),
@@ -196,11 +198,10 @@ class BatchMainPage extends ConsumerWidget {
         ),
       );
     } catch (e, stackTrace) {
-      debugPrint('IMPORT_CRASH: $e\n$stackTrace');
-
+      debugPrint('IMPORT_CRASH:$e\n$stackTrace');
       messenger.showSnackBar(
         SnackBar(
-          content: Text(
+          content: const Text(
             'Error occurred: Duplicate QR Code or invalid layout data found.',
           ),
           backgroundColor: Colors.red.shade700,

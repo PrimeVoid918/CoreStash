@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart' as platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,34 +10,22 @@ import 'package:prac1/src/features/inventory/data/inventory_providers.dart'
     as inventory_provider;
 import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
     as inventory_route;
-import 'package:prac1/src/core/services/csv_service.provider.dart' as csv_service;
+import 'package:prac1/src/core/services/csv_service.provider.dart'
+    as csv_service;
 
 final executeCsvExportActionProvider = Provider((ref) {
   final batchRepo = ref.watch(batch_provider.batchRepoProvider);
-  final csvService = ref.watch(
-    csv_service.csvServiceProvider,
-  ); // 👈 Injected statelessly from core
+  final csvService = ref.watch(csv_service.csvServiceProvider);
 
   return (int batchId) async {
-    // 1. Pull the data configurations safely from the features database layer
     final batchData = await batchRepo.fetchBatchInfo(batchId);
-    final String exportName = batchData?.name ?? "$batchId";
+    final String exportName = batchData?.name ?? "Batch_$batchId";
 
-    // 2. Pull down the raw matrix rows arrays
     final List<List<dynamic>> csvRows = await batchRepo.generateCsvRows(
       batchId,
     );
 
-    // 3. Delegate the temporary filesystem construction to our Core tool
-    final File? tempFile = await csvService.createTempCsvFile(
-      fileName: exportName,
-      rows: csvRows,
-    );
-
-    if (tempFile == null) return false;
-
-    // 4. Fire the native OS download dialogue prompt frame
-    return await csvService.presentSaveDialog(tempFile);
+    return await csvService.exportCsv(fileName: exportName, rows: csvRows);
   };
 });
 
@@ -64,13 +52,19 @@ class BatchListPage extends ConsumerWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.file_download_outlined, color: Colors.blue),
-            tooltip: "Export to CSV",
-            onPressed: () => _handleCsvExport(context, ref),
-          ),
+          if (!platform.kIsWeb)
+            IconButton(
+              icon: const Icon(
+                Icons.file_download_outlined,
+                color: Colors.blue,
+              ),
+              tooltip: "Export to CSV",
+              onPressed: () => _handleCsvExport(context, ref),
+            ),
           batchInfoAsync.maybeWhen(
             data: (batch) => batch == null
+                ? const SizedBox.shrink()
+                : platform.kIsWeb
                 ? const SizedBox.shrink()
                 : IconButton(
                     icon: const Icon(
@@ -133,7 +127,7 @@ class BatchListPage extends ConsumerWidget {
                       ? const _EmptyScannedStateView()
                       : _InventoryListView(items: items, batchId: batchId),
                 ),
-                _StickyBottomActionBar(batchId: batchId),
+                if (!platform.kIsWeb) _StickyBottomActionBar(batchId: batchId),
               ],
             );
           },
@@ -500,7 +494,9 @@ class _InventoryListView extends ConsumerWidget {
 
         return Dismissible(
           key: Key(item.id.toString()),
-          direction: DismissDirection.endToStart,
+          direction: platform.kIsWeb
+              ? DismissDirection.none
+              : DismissDirection.endToStart,
           background: Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 24),
