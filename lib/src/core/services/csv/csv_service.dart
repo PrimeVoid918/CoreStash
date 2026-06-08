@@ -144,8 +144,26 @@ class CsvService {
         html.Url.revokeObjectUrl(url);
         return true;
       } else {
-        debugPrint("CSV_EXPORT: Mobile path triggered. Data: $csvString");
-        return true;
+        debugPrint("CSV_EXPORT: Mobile path triggered. Saving real file...");
+
+        final File? tempFile = await createTempCsvFile(
+          fileName: cleanName,
+          rows: rows,
+        );
+
+        if (tempFile == null) {
+          debugPrint(
+            "CSV_EXPORT_ERROR: Failed to write to temporary storage cache.",
+          );
+          return false;
+        }
+        final bool isSaved = await presentSaveDialog(tempFile);
+
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
+
+        return isSaved;
       }
     } catch (e) {
       debugPrint("CSV_EXPORT_ERROR: $e");

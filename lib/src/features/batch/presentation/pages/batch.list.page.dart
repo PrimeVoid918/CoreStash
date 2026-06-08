@@ -124,6 +124,8 @@ class BatchListPage extends ConsumerWidget {
                   thickness: 1,
                   color: Color(0xFFF2F2F2),
                 ),
+                Text("${items.length} items"),
+
                 Expanded(
                   child: items.isEmpty
                       ? const _EmptyScannedStateView()
@@ -131,6 +133,7 @@ class BatchListPage extends ConsumerWidget {
                           items: items,
                           batchId: batchId,
                           batchName: batchInfoAsync.value?.name ?? "",
+                          batchDesc: batchInfoAsync.value?.description ?? "",
                         ),
                 ),
                 if (!platform.kIsWeb) _StickyBottomActionBar(batchId: batchId),
@@ -485,12 +488,14 @@ class _InventoryListView extends ConsumerWidget {
   final List items;
   final int batchId;
   final String batchName;
+  final String batchDesc;
 
   const _InventoryListView({
     super.key,
     required this.items,
     required this.batchId,
     required this.batchName,
+    required this.batchDesc,
   });
 
   @override
@@ -593,6 +598,7 @@ class _InventoryListView extends ConsumerWidget {
                                   await pdfService.exportInventoryReport(
                                     batchId: batchId,
                                     batchName: batchName,
+                                    batchDesc: batchDesc,
                                     records: filteredItems,
                                   );
                                 },

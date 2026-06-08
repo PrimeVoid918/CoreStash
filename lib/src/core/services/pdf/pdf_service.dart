@@ -9,6 +9,7 @@ class PdfService {
   Future<bool> exportInventoryReport({
     required int batchId,
     required String batchName,
+    required String batchDesc,
     required List<dynamic> records,
   }) async {
     try {
@@ -26,7 +27,7 @@ class PdfService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      "$batchName (ID: $batchId)",
+                      batchName,
                       style: pw.TextStyle(
                         fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
@@ -39,7 +40,28 @@ class PdfService {
                   ],
                 ),
               ),
-              pw.SizedBox(height: 20),
+
+              pw.SizedBox(height: 8),
+
+              pw.Text(
+                "Description:",
+                style: pw.TextStyle(
+                  fontSize: 11,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.grey700,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                batchDesc.isEmpty ? "No description provided." : batchDesc,
+                style: const pw.TextStyle(
+                  fontSize: 11,
+                  color: PdfColors.black,
+                  lineSpacing: 3.0,
+                ),
+              ),
+
+              pw.SizedBox(height: 24),
 
               pw.TableHelper.fromTextArray(
                 headers: ['ID', 'QR Code', 'Scanned At'],
@@ -53,6 +75,17 @@ class PdfService {
 
                   return [item.id.toString(), item.qrCode, formattedDate];
                 }).toList(),
+
+                columnWidths: const {
+                  0: pw.FixedColumnWidth(40),
+                  1: pw.FlexColumnWidth(), // QR Code Column: Takes up all remaining flexible space
+                  2: pw.FixedColumnWidth(110),
+                },
+
+                cellFormat: (index, data) => data.toString(),
+                cellDecoration: (index, data, rowNum) =>
+                    const pw.BoxDecoration(),
+
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 headerDecoration: const pw.BoxDecoration(
                   color: PdfColors.grey200,

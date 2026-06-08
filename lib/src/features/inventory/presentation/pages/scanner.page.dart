@@ -234,7 +234,9 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
       _isCooldownActive = true;
     });
 
-    notifier.setQr(qr);
+    notifier.setQr(qr.trim());
+
+    // notifier.setQr(qr);
     _handleSubmitScannerItem();
 
     // set timor lock
