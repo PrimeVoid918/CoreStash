@@ -10,8 +10,10 @@ import 'package:prac1/src/features/inventory/data/inventory_providers.dart'
     as inventory_provider;
 import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
     as inventory_route;
-import 'package:prac1/src/core/services/csv_service.provider.dart'
+import 'package:prac1/src/core/services/csv/csv_service.provider.dart'
     as csv_service;
+import 'package:prac1/src/core/services/pdf/pdf_service.provider.dart'
+    as pdf_service;
 
 final executeCsvExportActionProvider = Provider((ref) {
   final batchRepo = ref.watch(batch_provider.batchRepoProvider);
@@ -125,9 +127,14 @@ class BatchListPage extends ConsumerWidget {
                 Expanded(
                   child: items.isEmpty
                       ? const _EmptyScannedStateView()
-                      : _InventoryListView(items: items, batchId: batchId),
+                      : _InventoryListView(
+                          items: items,
+                          batchId: batchId,
+                          batchName: batchInfoAsync.value?.name ?? "",
+                        ),
                 ),
                 if (!platform.kIsWeb) _StickyBottomActionBar(batchId: batchId),
+                // _StickyBottomActionBar(batchId: batchId),
               ],
             );
           },
@@ -477,123 +484,410 @@ class _EmptyScannedStateView extends StatelessWidget {
 class _InventoryListView extends ConsumerWidget {
   final List items;
   final int batchId;
+  final String batchName;
 
   const _InventoryListView({
     super.key,
     required this.items,
     required this.batchId,
+    required this.batchName,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
+    String searchQuery = "";
+    bool isAscending = true;
+    int sortColumnIndex = 2;
 
-        return Dismissible(
-          key: Key(item.id.toString()),
-          direction: platform.kIsWeb
-              ? DismissDirection.none
-              : DismissDirection.endToStart,
-          background: Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.shade200, width: 1),
-            ),
-            alignment: Alignment.centerRight,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  "Remove Item",
-                  style: TextStyle(
-                    color: Colors.red.shade700,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) {
+        List<dynamic> filteredItems = items.where((item) {
+          final matchesQuery =
+              item.qrCode.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              item.id.toString().contains(searchQuery);
+          return matchesQuery;
+        }).toList();
+
+        if (sortColumnIndex == 2) {
+          filteredItems.sort((a, b) {
+            final aDate = DateTime.tryParse(a.scannedAt) ?? DateTime(0);
+            final bDate = DateTime.tryParse(b.scannedAt) ?? DateTime(0);
+            return isAscending
+                ? aDate.compareTo(bDate)
+                : bDate.compareTo(aDate);
+          });
+        }
+
+        return Column(
+          children: [
+            // SEARCH BAR
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: TextField(
+                controller: TextEditingController.fromValue(
+                  TextEditingValue(
+                    text: searchQuery,
+                    selection: TextSelection.collapsed(
+                      offset: searchQuery.length,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.delete_rounded,
-                  color: Colors.red.shade700,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-
-          confirmDismiss: (direction) async {
-            return await _showConfirmBottomSheet(context, item.qrCode);
-          },
-
-          onDismissed: (direction) {
-            final repo = ref.read(inventory_provider.inventoryRepoProvider);
-            repo.deleteInventoryItem(item.id);
-
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).clearSnackBars();
-            }
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) {
-                ref.invalidate(
-                  inventory_provider.inventoryListByBatchProvider(batchId),
-                );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("'${item.qrCode}' successfully removed."),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search records by QR code or ID...',
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: Colors.grey,
                   ),
-                );
-              }
-            });
-          },
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 16,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200, width: 1),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (platform.kIsWeb) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 8.0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  final pdfService = ref.read(
+                                    pdf_service.pdfServiceProvider,
+                                  );
+                                  await pdfService.exportInventoryReport(
+                                    batchId: batchId,
+                                    batchName: batchName,
+                                    records: filteredItems,
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.picture_as_pdf_rounded,
+                                  size: 18,
+                                ),
+                                label: const Text(
+                                  'Export into PDF',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue.shade600,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              24.0,
+                              0.0,
+                              24.0,
+                              24.0,
+                            ),
+                            child: Card(
+                              elevation: 2,
+                              shadowColor: Colors.black12,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(
+                                    color: Colors.grey.shade200,
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth:
+                                            MediaQuery.of(context).size.width -
+                                            80,
+                                      ),
+                                      child: DataTable(
+                                        headingRowColor:
+                                            WidgetStateProperty.all(
+                                              Colors.grey.shade50,
+                                            ),
+                                        headingRowHeight: 52,
+                                        sortAscending: isAscending,
+                                        sortColumnIndex: sortColumnIndex,
+                                        columns: [
+                                          const DataColumn(
+                                            label: Text(
+                                              'ID',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const DataColumn(
+                                            label: Text(
+                                              'QR Code',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: const Text(
+                                              'Scanned At',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            onSort: (columnIndex, ascending) {
+                                              setState(() {
+                                                sortColumnIndex = columnIndex;
+                                                isAscending = ascending;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                        rows: filteredItems.map<DataRow>((
+                                          item,
+                                        ) {
+                                          String formattedDate =
+                                              "${item.scannedAt}";
+                                          try {
+                                            final parsedDate = DateTime.parse(
+                                              item.scannedAt,
+                                            );
+                                            formattedDate =
+                                                "${parsedDate.year}-${parsedDate.month.toString().padLeft(2, '0')}-${parsedDate.day.toString().padLeft(2, '0')} "
+                                                "${parsedDate.hour.toString().padLeft(2, '0')}:${parsedDate.minute.toString().padLeft(2, '0')}";
+                                          } catch (_) {}
+
+                                          return DataRow(
+                                            cells: [
+                                              DataCell(
+                                                Text(item.id.toString()),
+                                              ),
+                                              DataCell(
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade100,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    item.qrCode,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'monospace',
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(Text(formattedDate)),
+                                            ],
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // mobile render
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                    itemCount: filteredItems.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredItems[index];
+
+                      return Dismissible(
+                        key: Key(item.id.toString()),
+                        direction: platform.kIsWeb
+                            ? DismissDirection.none
+                            : DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.red.shade200,
+                              width: 1,
+                            ),
+                          ),
+                          alignment: Alignment.centerRight,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                "Remove Item",
+                                style: TextStyle(
+                                  color: Colors.red.shade700,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.delete_rounded,
+                                color: Colors.red.shade700,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                        confirmDismiss: (direction) async {
+                          return await _showConfirmBottomSheet(
+                            context,
+                            item.qrCode,
+                          );
+                        },
+                        onDismissed: (direction) {
+                          final repo = ref.read(
+                            inventory_provider.inventoryRepoProvider,
+                          );
+                          repo.deleteInventoryItem(item.id);
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).clearSnackBars();
+                          }
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (context.mounted) {
+                              ref.invalidate(
+                                inventory_provider.inventoryListByBatchProvider(
+                                  batchId,
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "'${item.qrCode}' successfully removed.",
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.shade200,
+                              width: 1,
+                            ),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            leading: const CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.pin_drop_outlined,
+                                color: Colors.black54,
+                                size: 20,
+                              ),
+                            ),
+                            title: Text(
+                              item.qrCode,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                            subtitle: Text(
+                              "${item.scannedAt}",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                            trailing: Icon(
+                              Icons.chevron_left_rounded,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 4,
-              ),
-              leading: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.pin_drop_outlined,
-                  color: Colors.black54,
-                  size: 20,
-                ),
-              ),
-              title: Text(
-                item.qrCode,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  letterSpacing: 0.1,
-                ),
-              ),
-              subtitle: Text(
-                "${item.scannedAt}",
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-              ),
-              trailing: Icon(
-                Icons.chevron_left_rounded,
-                color: Colors.grey.shade400,
-              ),
-            ),
-          ),
+          ],
         );
       },
     );

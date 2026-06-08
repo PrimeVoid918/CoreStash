@@ -6,7 +6,7 @@ import 'package:prac1/src/features/batch/controller/notifier/batch_form.notifier
 import 'package:prac1/src/features/batch/data/batch_providers.dart' as provider;
 import 'package:prac1/src/features/batch/presentation/batch.route.dart'
     as batch_router;
-import 'package:prac1/src/core/services/csv_service.provider.dart'
+import 'package:prac1/src/core/services/csv/csv_service.provider.dart'
     as csv_service;
 
 class BatchMainPage extends ConsumerWidget {
@@ -136,7 +136,6 @@ class BatchMainPage extends ConsumerWidget {
                     "Parse internal storage table files straight into database tables",
                   ),
 
-                  // 🧠 Force strict, immediate execution on tap to lock Chrome's window gesture anchor
                   onTap: () => _handleCsvImportAction(context, ref),
                 ),
               ],
@@ -177,11 +176,9 @@ class BatchMainPage extends ConsumerWidget {
           .pickAndParseCsv();
 
       if (parsedMatrix == null || parsedMatrix.isEmpty) {
-        // If they backed out or cancelled, we don't drop the sheet out from under them
         return;
       }
 
-      // 🧠 Valid file grabbed! Now safely close the bottom action menu sheet
       if (context.mounted) {
         Navigator.of(context).pop();
       }
