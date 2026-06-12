@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
-import 'package:prac1/src/core/database/data_access_objects/inventory.dao.dart';
-import 'package:prac1/src/core/database/data_access_objects/batch.dao.dart';
-import 'package:prac1/src/core/database/app_database.dart' as db;
+import 'package:corestash/src/core/database/data_access_objects/inventory.dao.dart';
+import 'package:corestash/src/core/database/data_access_objects/batch.dao.dart';
+import 'package:corestash/src/core/database/app_database.dart' as db;
 
 class InventoryRepository {
   final InventoryDao _inventoryDao;

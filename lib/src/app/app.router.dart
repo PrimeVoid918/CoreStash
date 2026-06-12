@@ -1,9 +1,9 @@
 import 'package:go_router/go_router.dart';
 
 // 1. Import the file that ACTUALLY contains the generated code
-import 'package:prac1/src/features/batch/presentation/batch.route.dart'
+import 'package:corestash/src/features/batch/presentation/batch.route.dart'
     as batch_feature;
-import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
+import 'package:corestash/src/features/inventory/presentation/inventory.route.dart'
     as inventory_feature;
 
 class AppRoute {

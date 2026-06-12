@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prac1/src/shared/widgets/modal_wapper.dart';
-import 'package:prac1/src/features/batch/controller/notifier/batch_form.notifier.dart'
+import 'package:corestash/src/shared/widgets/modal_wapper.dart';
+import 'package:corestash/src/features/batch/controller/notifier/batch_form.notifier.dart'
     as notifier;
-import 'package:prac1/src/features/batch/data/batch_providers.dart' as provider;
-import 'package:prac1/src/features/batch/presentation/batch.route.dart'
+import 'package:corestash/src/features/batch/data/batch_providers.dart' as provider;
+import 'package:corestash/src/features/batch/presentation/batch.route.dart'
     as batch_router;
-import 'package:prac1/src/core/services/csv/csv_service.provider.dart'
+import 'package:corestash/src/core/services/csv/csv_service.provider.dart'
     as csv_service;
 
 class BatchMainPage extends ConsumerWidget {

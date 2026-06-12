@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:prac1/src/core/database/app_database.dart' as db;
-import 'package:prac1/src/features/inventory/data/inventory_repository.dart'
+import 'package:corestash/src/core/database/app_database.dart' as db;
+import 'package:corestash/src/features/inventory/data/inventory_repository.dart'
     as repo;
-import 'package:prac1/src/features/batch/data/batch_providers.dart';
+import 'package:corestash/src/features/batch/data/batch_providers.dart';
 
 final inventoryDaoProvider = riverpod.Provider(
   (ref) => ref.watch(appDatabaseProvider).inventoryDao,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prac1/src/features/batch/presentation/pages/main.page.dart';
-import 'package:prac1/src/features/inventory/presentation/pages/main.page.dart';
-import 'package:prac1/src/features/inventory/presentation/pages/records.page.dart';
-import 'package:prac1/src/features/inventory/presentation/pages/scanner.page.dart';
+import 'package:corestash/src/features/batch/presentation/pages/main.page.dart';
+import 'package:corestash/src/features/inventory/presentation/pages/main.page.dart';
+import 'package:corestash/src/features/inventory/presentation/pages/records.page.dart';
+import 'package:corestash/src/features/inventory/presentation/pages/scanner.page.dart';
 
 part 'inventory.route.g.dart';
 

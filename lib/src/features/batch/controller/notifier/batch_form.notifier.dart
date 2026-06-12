@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart' as debugger;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:prac1/src/features/batch/controller/states/batch_form.state.dart'
+import 'package:corestash/src/features/batch/controller/states/batch_form.state.dart'
     as ui_form_data;
-import 'package:prac1/src/features/batch/data/batch_repository.dart' as repo;
-import 'package:prac1/src/features/batch/data/batch_providers.dart'
+import 'package:corestash/src/features/batch/data/batch_repository.dart' as repo;
+import 'package:corestash/src/features/batch/data/batch_providers.dart'
     as providers;
 
 class BatchFormNotifier extends riverpod.Notifier<ui_form_data.BatchFormState> {

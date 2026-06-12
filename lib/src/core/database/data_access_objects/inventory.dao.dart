@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:prac1/src/core/database/app_database.dart';
-import 'package:prac1/src/core/database/tables.dart';
+import 'package:corestash/src/core/database/app_database.dart';
+import 'package:corestash/src/core/database/tables.dart';
 
 part 'inventory.dao.g.dart';
 

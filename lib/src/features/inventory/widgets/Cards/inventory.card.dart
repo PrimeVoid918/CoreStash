@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:prac1/src/features/inventory/domain/inventory_model.dart';
+import 'package:corestash/src/features/inventory/domain/inventory_model.dart';
 
 class InventoryCard extends StatelessWidget {
   final InventoryModel item;

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prac1/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
-import 'package:prac1/src/features/inventory/controller/notifier/inventory_form.notifier.dart'
+import 'package:corestash/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
+import 'package:corestash/src/features/inventory/controller/notifier/inventory_form.notifier.dart'
     as inventory_notifier;
 
 class ScannerPage extends ConsumerStatefulWidget {

@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart' as debugger;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 
-import 'package:prac1/src/features/inventory/data/inventory_providers.dart'
+import 'package:corestash/src/features/inventory/data/inventory_providers.dart'
     as providers;
-import 'package:prac1/src/features/inventory/data/inventory_repository.dart'
+import 'package:corestash/src/features/inventory/data/inventory_repository.dart'
     as repo;
 
-import 'package:prac1/src/core/database/app_database.dart' as db;
+import 'package:corestash/src/core/database/app_database.dart' as db;
 
-import 'package:prac1/src/features/inventory/controller/states/inventory_form.state.dart'
+import 'package:corestash/src/features/inventory/controller/states/inventory_form.state.dart'
     as ui_form_data;
 
 enum ScanResult { success, duplicate, error }
@@ -65,7 +65,6 @@ class InventoryFormNotifier
   }
 }
 
-// 2. Change the Provider type declaration to AutoDisposeNotifierProvider
 final inventoryFormControllerProvider =
     riverpod.AutoDisposeNotifierProvider<
       InventoryFormNotifier,

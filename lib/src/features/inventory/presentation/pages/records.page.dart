@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prac1/src/features/inventory/data/inventory_providers.dart';
-// import 'package:prac1/src/features/inventory/domain/inventory_model.dart';
-// import 'package:prac1/src/features/inventory/widgets/Cards/inventory.card.dart';
+import 'package:corestash/src/features/inventory/data/inventory_providers.dart';
+// import 'package:corestash/src/features/inventory/domain/inventory_model.dart';
+// import 'package:corestash/src/features/inventory/widgets/Cards/inventory.card.dart';
 
 class RecordsPage extends ConsumerWidget {
   // Changed from StatelessWidget

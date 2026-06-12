@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:prac1/src/features/batch/data/batch_providers.dart'
+import 'package:corestash/src/features/batch/data/batch_providers.dart'
     as batch_provider;
-import 'package:prac1/src/features/inventory/data/inventory_providers.dart'
+import 'package:corestash/src/features/inventory/data/inventory_providers.dart'
     as inventory_provider;
-import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
+import 'package:corestash/src/features/inventory/presentation/inventory.route.dart'
     as inventory_route;
-import 'package:prac1/src/core/services/csv/csv_service.provider.dart'
+import 'package:corestash/src/core/services/csv/csv_service.provider.dart'
     as csv_service;
-import 'package:prac1/src/core/services/pdf/pdf_service.provider.dart'
+import 'package:corestash/src/core/services/pdf/pdf_service.provider.dart'
     as pdf_service;
 
 final executeCsvExportActionProvider = Provider((ref) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prac1/src/features/batch/presentation/pages/main.page.dart';
-import 'package:prac1/src/features/batch/presentation/pages/batch.list.page.dart';
+import 'package:corestash/src/features/batch/presentation/pages/main.page.dart';
+import 'package:corestash/src/features/batch/presentation/pages/batch.list.page.dart';
 
 part 'batch.route.g.dart';
 
@@ -21,7 +21,6 @@ class BatchMainRoute extends GoRouteData with $BatchMainRoute {
 
 @TypedGoRoute<BatchListRoute>(path: BatchRoute.batchList)
 class BatchListRoute extends GoRouteData with $BatchListRoute {
-  // Fixed here: removed the underscore
   final int id;
   const BatchListRoute({required this.id});
 

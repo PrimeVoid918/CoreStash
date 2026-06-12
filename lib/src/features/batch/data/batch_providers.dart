@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:prac1/src/core/database/app_database.dart' as db;
-import 'package:prac1/src/features/batch/data/batch_repository.dart'
+import 'package:corestash/src/core/database/app_database.dart' as db;
+import 'package:corestash/src/features/batch/data/batch_repository.dart'
     as batch_repo;
 
 // 1. Core Database Dependency (Shared across the app)

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prac1/src/features/inventory/controller/notifier/inventory_form.notifier.dart'
+import 'package:corestash/src/features/inventory/controller/notifier/inventory_form.notifier.dart'
     as inventory_notifier;
-import 'package:prac1/src/features/inventory/presentation/inventory.route.dart'
+import 'package:corestash/src/features/inventory/presentation/inventory.route.dart'
     as route;
-import 'package:prac1/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
+import 'package:corestash/src/features/inventory/widgets/QRScanner/qr_scanner.widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverod;
 
 class InventoryMainScreen extends riverod.ConsumerStatefulWidget {

@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 
 class ModalWrapper extends StatelessWidget {
   final String title;
-  final Widget child; // This allows you to pass in any widget
+  final Widget child;
 
-  const ModalWrapper({
-    super.key,
-    required this.title,
-    required this.child,
-  });
+  const ModalWrapper({super.key, required this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +15,12 @@ class ModalWrapper extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Wrap content height
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(title, style: Theme.of(context).textTheme.headlineSmall),
           const Divider(),
           const SizedBox(height: 10),
-          child, // Injecting the passed-in content here
+          child,
         ],
       ),
     );
