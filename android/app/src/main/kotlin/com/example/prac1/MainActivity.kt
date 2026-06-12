@@ -1,4 +1,4 @@
-package com.example.prac1
+package com.example.corestash
 
 import io.flutter.embedding.android.FlutterActivity
 
