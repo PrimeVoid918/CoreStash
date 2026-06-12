@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 // engine selector:
 import 'connection/connection_stub.dart'
-    if (dart.library.ffi) 'connection/connection_mobile.dart'
+    if (dart.library.ffi) 'connection/connection_native.dart'
     if (dart.library.js_interop) 'connection/connection_web.dart';
 
 import 'tables.dart';

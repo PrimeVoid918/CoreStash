@@ -43,6 +43,11 @@ class BatchListPage extends ConsumerWidget {
     );
     final batchInfoAsync = ref.watch(batch_provider.batchInfoProvider(batchId));
 
+    final isNotMobileTargetPlatform =
+        !platform.kIsWeb &&
+        platform.defaultTargetPlatform != platform.TargetPlatform.linux &&
+        platform.defaultTargetPlatform != platform.TargetPlatform.windows;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,7 +59,8 @@ class BatchListPage extends ConsumerWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         actions: [
-          if (!platform.kIsWeb)
+          // if (!platform.kIsWeb && !platform.linux)
+          if (isNotMobileTargetPlatform)
             IconButton(
               icon: const Icon(
                 Icons.file_download_outlined,
@@ -66,7 +72,7 @@ class BatchListPage extends ConsumerWidget {
           batchInfoAsync.maybeWhen(
             data: (batch) => batch == null
                 ? const SizedBox.shrink()
-                : platform.kIsWeb
+                : !isNotMobileTargetPlatform
                 ? const SizedBox.shrink()
                 : IconButton(
                     icon: const Icon(
@@ -136,7 +142,8 @@ class BatchListPage extends ConsumerWidget {
                           batchDesc: batchInfoAsync.value?.description ?? "",
                         ),
                 ),
-                if (!platform.kIsWeb) _StickyBottomActionBar(batchId: batchId),
+                if (isNotMobileTargetPlatform)
+                  _StickyBottomActionBar(batchId: batchId),
                 // _StickyBottomActionBar(batchId: batchId),
               ],
             );
@@ -523,6 +530,11 @@ class _InventoryListView extends ConsumerWidget {
           });
         }
 
+        final isNotMobileTargetPlatform =
+            !platform.kIsWeb &&
+            platform.defaultTargetPlatform != platform.TargetPlatform.linux &&
+            platform.defaultTargetPlatform != platform.TargetPlatform.windows;
+
         return Column(
           children: [
             // SEARCH BAR
@@ -578,7 +590,7 @@ class _InventoryListView extends ConsumerWidget {
             Expanded(
               child: Builder(
                 builder: (context) {
-                  if (platform.kIsWeb) {
+                  if (!isNotMobileTargetPlatform) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -773,7 +785,7 @@ class _InventoryListView extends ConsumerWidget {
 
                       return Dismissible(
                         key: Key(item.id.toString()),
-                        direction: platform.kIsWeb
+                        direction: !isNotMobileTargetPlatform
                             ? DismissDirection.none
                             : DismissDirection.endToStart,
                         background: Container(
