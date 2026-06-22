@@ -1,0 +1,4 @@
+# Treat boilerplate platform directories as vendor code
+android/** linguist-vendored
+linux/** linguist-vendored
+web/** linguist-vendored
